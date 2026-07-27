@@ -1,9 +1,25 @@
 /// <reference lib="webworker" />
 import { pipeline, env, type AutomaticSpeechRecognitionPipeline } from "@huggingface/transformers";
+// Bundled locally by Vite so the ONNX runtime never has to reach out to
+// cdn.jsdelivr.net for the WASM binary (see wasmPaths override below).
+// A relative filesystem path is used (instead of a package subpath import)
+// because onnxruntime-web's package.json "exports" map doesn't expose the
+// .wasm files as importable subpaths.
+import ortWasmUrl from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.asyncify.wasm?url";
 
 // Allow remote model downloads; disable local model lookup on the static site.
 env.allowLocalModels = false;
 env.allowRemoteModels = true;
+
+// @huggingface/transformers defaults the ONNX runtime's wasmPaths to
+// https://cdn.jsdelivr.net/npm/onnxruntime-web@.../dist/ unless it detects a
+// ServiceWorker context. We run inside a plain dedicated Worker, so it always
+// takes that CDN branch — if jsdelivr is blocked or unreachable (firewall,
+// ad-blocker, offline), model loading fails with "Failed to fetch". Force it
+// to use the copy already shipped with this site instead.
+if (env.backends.onnx?.wasm) {
+  env.backends.onnx.wasm.wasmPaths = { wasm: ortWasmUrl };
+}
 
 type InMsg =
   | { type: "init" }
