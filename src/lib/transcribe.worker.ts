@@ -11,6 +11,16 @@ import ortWasmUrl from "../../node_modules/onnxruntime-web/dist/ort-wasm-simd-th
 env.allowLocalModels = false;
 env.allowRemoteModels = true;
 
+// Baixa o modelo através do nosso próprio Worker (rota /api/hf/*) em vez de
+// buscar huggingface.co diretamente do navegador. Isso evita depender do
+// CORS do Hugging Face (que pode falhar por bloqueador de anúncios, proxy
+// corporativo, instabilidade pontual do edge deles, etc. — nada relacionado
+// à nossa configuração do Cloudflare). O template de caminho padrão
+// ("{model}/resolve/{revision}/{file}") continua o mesmo, só o host muda.
+if (typeof self !== "undefined" && "location" in self) {
+  env.remoteHost = `${(self as unknown as Worker & { location: Location }).location.origin}/api/hf/`;
+}
+
 // @huggingface/transformers defaults the ONNX runtime's wasmPaths to
 // https://cdn.jsdelivr.net/npm/onnxruntime-web@.../dist/ unless it detects a
 // ServiceWorker context. We run inside a plain dedicated Worker, so it always
