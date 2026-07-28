@@ -3,7 +3,7 @@
   // arquivo em build time e mescla com o que ele mesmo gera (main/assets),
   // gravando o resultado final em `.output/server/wrangler.json`.
   // Não edite `main` nem `assets` aqui — eles são sempre sobrescritos pelo Nitro.
-  "name": "transcrever-pt-br",
+  "name": "transcript-web-pt-br",
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": {
